@@ -18,8 +18,7 @@ variable "tf_environment" { # use the environment variable multiple times to mod
   default = "dev-env"
 }
 
-/*
- module "s3" {
+module "s3" {
   source = "../../module/s3/"
   # s3_bucket_name = "tf-swb-bucket"
   s3_bucket_list = ["swb1-bucket", "swb2-bucket"]
@@ -43,22 +42,21 @@ module "ec2" {
   ec2_instance_ami  = "ami-08a52ddb321b32a8c" # us-east-1 Amazon linux
   sg_name           = "terraform-sg"
   vpc_id_name       = "vpc-0886a9ad8b4a83f66" # us-east-1 defualt vpc id
-} 
-*/
+}
 
 module "vpc" {
-  source   = "../../module/vpc"
-  cidr     = "20.0.0.0/19"
-  vpc_name = "tf-vpc"
+  source                                = "../../module/vpc"
+  cidr                                  = "20.0.0.0/19"
+  vpc_name                              = "tf-vpc"
   public_subnet_map_public_ip_on_launch = true
-  public_subnet_cidr  = ["20.0.0.0/22"]
-  private_subnet_cidr = ["20.0.4.0/22", "20.0.8.0/22", "20.0.12.0/22"]
-  private_subnet_name = "private-subnet"
-  public_subnet_name  = "Public-subnet"
-  private_rt_name = "private-rt"
-  public_rt_name = "Public-rt"
+  public_subnet_cidr                    = ["20.0.0.0/22"]
+  private_subnet_cidr                   = ["20.0.4.0/22", "20.0.8.0/22", "20.0.12.0/22"]
+  private_subnet_name                   = "private-subnet"
+  public_subnet_name                    = "Public-subnet"
+  private_rt_name                       = "private-rt"
+  public_rt_name                        = "Public-rt"
 
   nat_gateway = "nat-gateway"
-  nat_eip = "nat-eip"
-  igw_name = "tf-igw"
+  nat_eip     = "nat-eip"
+  igw_name    = "tf-igw"
 }
