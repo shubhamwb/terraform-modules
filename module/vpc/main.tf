@@ -1,46 +1,41 @@
 resource "aws_vpc" "main" {
   cidr_block = var.cidr
-  tags = {
-    Name = var.vpc_name
-  }
+  tags       = merge(var.tags, { "Name" = format("%s-%s-%s", var.project, var.env, "vpc") })
 }
 
 resource "aws_subnet" "private_subnet" {
-  count      = length(var.private_subnet_cidr)
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.private_subnet_cidr[count.index]
-  tags = {
-    Name = "${var.private_subnet_name}-${count.index + 1}"
-  }
+  count             = length(var.private_subnet_cidr)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_subnet_cidr[count.index]
+  availability_zone = element(var.availability_zones, count.index)
+  tags              = merge(var.tags, { "Name" = format("%s-%s-%s-%s", var.project, var.env, "private-subnet", count.index + 1) })
 }
 
 resource "aws_subnet" "public_subnet" {
   count                   = length(var.public_subnet_cidr)
   vpc_id                  = aws_vpc.main.id
-  map_public_ip_on_launch = var.public_subnet_map_public_ip_on_launch
   cidr_block              = var.public_subnet_cidr[count.index]
-
-  tags = {
-    Name = "${var.public_subnet_name}-${count.index + 1}"
-  }
+  availability_zone       = element(var.availability_zones, count.index)
+  map_public_ip_on_launch = true
+  tags                    = merge(var.tags, { "Name" = format("%s-%s-%s-%s", var.project, var.env, "public-subnet", count.index + 1) })
 }
 
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.main.id
-  tags = {
-    Name = var.private_rt_name
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gateway.id
   }
+  tags = merge(var.tags, { "Name" = format("%s-%s-%s", var.project, var.env, "private-rt") })
 }
 
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.main.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.tf-igw.id
+    gateway_id = aws_internet_gateway.igw.id
   }
-  tags = {
-    Name = var.public_rt_name
-  }
+  tags = merge(var.tags, { "Name" = format("%s-%s-%s", var.project, var.env, "public-rt") })
 }
 
 resource "aws_route_table_association" "private_subnet_association" {
@@ -56,23 +51,18 @@ resource "aws_route_table_association" "public_subnet_association" {
 }
 
 resource "aws_nat_gateway" "nat_gateway" {
-  count         = length(var.public_subnet_cidr)
-  subnet_id     = aws_subnet.public_subnet[count.index].id
+  subnet_id     = aws_subnet.public_subnet[0].id # assign to only one subnet
   allocation_id = aws_eip.nat_eip.id
-  tags = {
-    Name = var.nat_gateway
-  }
+  tags          = merge(var.tags, { "Name" = format("%s-%s-%s", var.project, var.env, "nat-gateway") })
 }
 
 resource "aws_eip" "nat_eip" {
-  tags = {
-    Name = var.nat_eip
-  }
+  domain = var.eip_domain
+  tags = merge(var.tags, { "Name" = format("%s-%s-%s", var.project, var.env, "eip") })
 }
 
-resource "aws_internet_gateway" "tf-igw" {
+resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
-  tags = {
-    Name = var.igw_name
-  }
+  tags   = merge(var.tags, { "Name" = format("%s-%s-%s", var.project, var.env, "igw") })
+
 }

@@ -15,7 +15,7 @@ provider "aws" {
 
 variable "tf_environment" { # use the environment variable multiple times to modules  
   type    = string
-  default = "dev-env"
+  default = "dev"
 }
 
 module "s3" {
@@ -42,21 +42,20 @@ module "ec2" {
   ec2_instance_ami  = "ami-08a52ddb321b32a8c" # us-east-1 Amazon linux
   sg_name           = "terraform-sg"
   vpc_id_name       = "vpc-0886a9ad8b4a83f66" # us-east-1 defualt vpc id
-}
+} 
 
 module "vpc" {
-  source                                = "../../module/vpc"
-  cidr                                  = "20.0.0.0/19"
-  vpc_name                              = "tf-vpc"
-  public_subnet_map_public_ip_on_launch = true
-  public_subnet_cidr                    = ["20.0.0.0/22"]
-  private_subnet_cidr                   = ["20.0.4.0/22", "20.0.8.0/22", "20.0.12.0/22"]
-  private_subnet_name                   = "private-subnet"
-  public_subnet_name                    = "Public-subnet"
-  private_rt_name                       = "private-rt"
-  public_rt_name                        = "Public-rt"
-
-  nat_gateway = "nat-gateway"
-  nat_eip     = "nat-eip"
-  igw_name    = "tf-igw"
+  source              = "../../module/vpc"
+  cidr                = "20.0.0.0/19"
+  availability_zones  = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+  public_subnet_cidr  = ["20.0.0.0/22", "20.0.16.0/22"]
+  private_subnet_cidr = ["20.0.4.0/22", "20.0.8.0/22", "20.0.12.0/22"]
+  eip_domain = "vpc"
+  tags = {
+    Owner = "terraform"
+    Project = "agro"
+    Env = var.tf_environment
+  }
+  project = "agro"
+  env     = var.tf_environment
 }
